@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Your Transcripts</h1>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>IPFS Hash</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for transcript in transcripts %}
+    <tr>
+    <td>{{ transcript.id }}</td>
+    <td>{{ transcript.ipfs_hash }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    
+      </table>
+    {% endblock %}
+    ```
