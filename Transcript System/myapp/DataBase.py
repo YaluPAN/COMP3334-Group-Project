@@ -1,6 +1,8 @@
 import hashlib
 import time
 import uuid
+import warnings
+
 import pymysql
 from Crypto.Cipher import AES
 from Crypto import Random
@@ -15,16 +17,16 @@ class Link_Database:
                          "port": 3306,
                          "charset": "utf8"}
 
-    __salt: dict= {"db_name":"salt",
-                   "account": "qishihao01",
-                   "password": "20011214Db#"
-                   }
-    __saltconn=None
-    __saltcursor=None
+    __salt: dict = {"db_name": "salt",
+                    "account": "qishihao01",
+                    "password": "20011214Db#"
+                    }
+    __saltconn = None
+    __saltcursor = None
 
     def __init__(self) -> None:
-        retryCount, initCount=10, 0
-        while initCount<retryCount:
+        retryCount, initCount = 10, 0
+        while initCount < retryCount:
             try:
                 self.conn = pymysql.connect(
                     host=self.__variables["host"], user=self.__variables["account"],
@@ -36,13 +38,13 @@ class Link_Database:
                 break
             except Exception as e:
                 print(f"Cannot link with database, error message {e}.")
-                initCount+=1
+                initCount += 1
 
-        if initCount>9: exit(0)
+        if initCount > 9: exit(0)
 
         return
 
-    def __salt_conn(self):
+    def _salt_conn(self):
         retryCount, initCount = 10, 0
         while initCount < retryCount:
             try:
@@ -75,57 +77,81 @@ class Link_Database:
 
 
 class Database_operation(Link_Database):
-
     cursor: pymysql.connect.cursor
-    bs=AES.block_size
+    bs = AES.block_size
 
     def __init__(self):
         super().__init__()
-        self.cursor=self.return_cursor()
-        self.__salt_conn()
+        self.cursor = self.return_cursor()
+        self._salt_conn()
 
-    def get_data(self, user, account):
-        sql="SELECT "
-        ...
+    def get_data(self, sid, table="student_account"):
+        sql = """SELECT sa.*, ssu.university FROM `student_account`  as sa
+        INNER JOIN `student_submit_uni`  as ssu ON sa.sid = ssu.sid
+        where sa.sid=%s;
+        """
+        try:
+            self.cursor.execute(sql, (sid,))
+            results = self.cursor.fetchall()
+        except Exception as e:
+            print(f"Exception message is {e}")
+            return False
+
+        return results
 
     def salt_generate(self):
         return uuid.uuid4().bytes
 
     def encrpyion_passowrd(self, pw: str, salt: bytes):
-        pwencode=pw.encode("utf-8")
-        xored=bytearray()
+        pwencode = pw.encode("utf-8")
+        xored = bytearray()
         for times in range(len(salt)):
-            xored.append(salt[times]^pwencode[times%len(salt)])
+            xored.append(salt[times] ^ pwencode[times % len(salt)])
         return hashlib.sha256(xored).hexdigest()
 
+    # https://stackoverflow.com/questions/12524994/encrypt-and-decrypt-using-pycrypto-aes-256
     def _pad(self, s):
         return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)
 
     def AES_encryption(self, pw: str, salt):
-        pw=self._pad(pw)
-        cipher=AES.new(salt, AES.MODE_CBC)
-        iv=Random.new().read(AES.block_size)
-        cipher=AES.new(salt, AES.MODE_CBC, iv)
-        return base64.b64encode(iv+cipher.encrypt(pw.encode()))
+        pw = self._pad(pw)
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(salt, AES.MODE_CBC, iv)
+        return base64.b64encode(iv + cipher.encrypt(pw.encode()))
 
     @staticmethod
     def _unpad(s):
-        return s[:-ord(s[len(s)-1:])]
+        return s[:-ord(s[len(s) - 1:])]
 
     def AES_decryption(self, enc, salt):
-        dec=base64.b64decode(enc)
-        iv=dec[:AES.block_size]
-        cipher=AES.new(salt, AES.MODE_CBC, iv)
+        dec = base64.b64decode(enc)
+        iv = dec[:AES.block_size]
+        cipher = AES.new(salt, AES.MODE_CBC, iv)
         return self._unpad(cipher.decrypt(dec[AES.block_size:])).decode('utf-8')
 
+    def pw_encode(self, pw: str):
+        salt = self.salt_generate()
+        return self.AES_encryption(pw, salt), salt
 
-    def insert_database(self, user, password, hash=None)->bool:
-        salt=self.salt_generate()
+    def sid_validation(self, sid: str):
+        return self.get_data(sid)
 
-        sql="INSERT INTO `student_ACCOUNT` (`account name`, `password`) values (%s, %s);"
-        values=(user, password)
+    def student_info_update(self):
+        ...
+
+    def insert_database(self, sid: str, password: str) -> bool:
+        pw_encoded, salt = self.pw_encode(password)
+        if self.sid_validation(sid):
+            warnings.warn(f"SID {sid} already exist, cannot register again")
+            return False
+
+        sql_pw, val_pw = "INSERT INTO `student_ACCOUNT` (`account name`, `password`) values (%s, %s);", \
+                         (sid, pw_encoded)
+        sql_salt, val_salt = "INSERT INTO `student_ACCOUNT` (`account name`, `password`) values (%s, %s);", \
+                             (sid, salt)
+
         try:
-            self.cursor.execute(sql, values)
+            self.cursor.execute(sql_pw, val_pw)
             self.conn.commit()
             time.sleep(2)
         except Exception as e:
@@ -137,22 +163,20 @@ class Database_operation(Link_Database):
         ...
 
 
-if __name__=="__main__":
-    db=Database_operation()
-    db.insert_database()
+class Login(object):
 
-# SQL statement:
-# Create a table to store user accounts and passwords
-# c.execute('''CREATE TABLE IF NOT EXISTS users
-#              (id integer primary key autoincrement, username text, password text)''')
-#
-# # Create a table to store the IPFS hashes
-# c.execute('''CREATE TABLE IF NOT EXISTS ipfs_hashes
-#              (id integer primary key autoincrement, user_id integer, hash text,
-#               FOREIGN KEY (user_id) REFERENCES users (id))''')
-# conn.commit()
+    def __init__(self) -> None:
+        ...
 
 
+def test_encryption():
+    db = Database_operation()
+    salt, pw = db.salt_generate(), "yfkHDD02034"
+    val = db.AES_encryption(pw, salt)
+    print(db.AES_decryption(val, salt), pw)
 
 
+if __name__ == "__main__":
+    res = test_encryption()
 
+    # integration of encryption and insert, after insert to decrypt the value
