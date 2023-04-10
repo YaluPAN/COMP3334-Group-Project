@@ -173,7 +173,7 @@ def test_encryption():
     db = Database_operation()
     salt, pw = db.salt_generate(), "yfkHDD02034"
     val = db.AES_encryption(pw, salt)
-    print(db.AES_decryption(val, salt), pw)
+    print(val,db.AES_decryption(val, salt), pw)
 
 
 if __name__ == "__main__":
