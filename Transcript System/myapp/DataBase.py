@@ -21,8 +21,8 @@ class Link_Database:
                     "account": "qishihao01",
                     "password": "20011214Db#"
                     }
-    __saltconn = None
-    __saltcursor = None
+    _saltconn = None
+    _saltcursor = None
 
     def __init__(self) -> None:
         retryCount, initCount = 10, 0
@@ -48,13 +48,13 @@ class Link_Database:
         retryCount, initCount = 10, 0
         while initCount < retryCount:
             try:
-                self.__saltconn = pymysql.connect(
+                self._saltconn = pymysql.connect(
                     host=self.__variables["host"], user=self.__salt["account"],
                     password=self.__salt["password"], db=self.__salt["db_name"],
                     port=self.__variables["port"], charset=self.__variables["charset"]
                 )
                 print("Successful link with salt database.")
-                self.__saltcursor = self.conn.cursor()
+                self._saltcursor = self._saltconn.cursor()
                 break
             except Exception as e:
                 print(f"Cannot link with salt database, error message {e}.")
@@ -80,12 +80,17 @@ class Database_operation(Link_Database):
     cursor: pymysql.connect.cursor
     bs = AES.block_size
 
+    update_standard: dict = {
+        "student_account": {"pw": "`password`", "hashes": "`hashes`", "name": "`name`"},
+        "admin": {"pw": "`password`"}
+    }
+
     def __init__(self):
         super().__init__()
         self.cursor = self.return_cursor()
         self._salt_conn()
 
-    def get_data(self, sid, table="student_account"):
+    def get_user_data(self, sid, table="student_account"):
         sql = """SELECT sa.*, ssu.university FROM `student_account`  as sa
         INNER JOIN `student_submit_uni`  as ssu ON sa.sid = ssu.sid
         where sa.sid=%s;
@@ -98,6 +103,15 @@ class Database_operation(Link_Database):
             return False
 
         return results
+
+    def get_book_data(self, bookname: str):
+        ...
+
+    def salt_encode(self, salt: bytes):
+        return salt.decode("iso-8859-1")
+
+    def salt_decode(self, enc_salt: str):
+        return enc_salt.encode("iso-8859-1")
 
     def salt_generate(self):
         return uuid.uuid4().bytes
@@ -131,33 +145,114 @@ class Database_operation(Link_Database):
 
     def pw_encode(self, pw: str):
         salt = self.salt_generate()
-        return self.AES_encryption(pw, salt), salt
+        return self.AES_encryption(pw, salt), self.salt_encode(salt)
 
     def sid_validation(self, sid: str):
-        return self.get_data(sid)
+        return self.get_user_data(sid)
 
-    def student_info_update(self):
-        ...
+    def data_validation(self, data: dict) -> bool:
+        for key, val in data.items():
+            if not val: return False
+        return True
 
-    def insert_database(self, sid: str, password: str) -> bool:
-        pw_encoded, salt = self.pw_encode(password)
-        if self.sid_validation(sid):
-            warnings.warn(f"SID {sid} already exist, cannot register again")
+    # modification needed -----------------------------------------------------
+    def student_info_update(self, data: dict):
+        update_sql, upval = "", ()
+        for key, val in data.items():
+            if val is None:
+                print("Invalidate value, reject to update.")
+                return False
+        if data["table"] == "student_account":
+            update_sql = """
+        update `student_account` set %s=%s where `sid`=%s
+        """
+            upval = (self.update_standard["student_account"][data["col"]], data["val"], data["sid"])
+        elif data["table"] == "admin":
+            update_sql = """
+            update `student_account` set %s=%s where `sid`=%s
+            """
+            upval = (self.update_standard["admin"][data["col"]], data["val"], data["sid"])
+
+        if update_sql == "" or not upval:
+            print("Invalid input, reject to insert.")
             return False
-
-        sql_pw, val_pw = "INSERT INTO `student_ACCOUNT` (`account name`, `password`) values (%s, %s);", \
-                         (sid, pw_encoded)
-        sql_salt, val_salt = "INSERT INTO `student_ACCOUNT` (`account name`, `password`) values (%s, %s);", \
-                             (sid, salt)
-
         try:
-            self.cursor.execute(sql_pw, val_pw)
-            self.conn.commit()
-            time.sleep(2)
+            self.cursor.execute(update_sql, upval)
         except Exception as e:
-            print(f"Insert failed, error message {e}")
+            print(f"Wrong Message {e}")
             return False
         return True
+
+    def execute_commit(self, cursors: dict):
+        for key, val in cursors.items():
+            cursor, conn = None, None
+            if key[0:6] == "normal":
+                cursor, conn = self.cursor, self.conn
+            elif key == "salt":
+                cursor, conn = self._saltcursor, self._saltconn
+            else:
+                return ["invalidate order, reject to execute", False]
+            try:
+                cursor.execute(val[0], val[1])
+                conn.commit()
+                time.sleep(2)
+            except Exception as e:
+                return [f"{e}", False]
+
+        return ["successfully injected", True]
+
+    def sign_up_insert(self, account: str, password: str, name: str, token: int = 50) -> list:
+        if self.sid_validation(account):
+            warnings.warn(f"SID {account} already exist, cannot register again")
+            return ["", False]
+        pw_encoded, salt = self.pw_encode(password)
+
+        sql_pw, val_pw = """INSERT INTO `user` (`account`, `pw`, `name`, `token`)
+                         values (%s, %s, %s, %d);""", \
+                         (account, pw_encoded, name, token)
+        sql_salt, val_salt = "INSERT INTO `salt spy` (`account`, `salt`) values (%s, %s);", \
+                             (account, salt)
+
+        orders = {"normal": (sql_pw, val_pw), "salt": (sql_salt, val_salt)}
+        return self.execute_commit(orders)
+
+    def books_update(self, data: dict):
+        """
+        when user plan to share and sold a book
+        :param data: contains book name, account, book_path, integral_hash, bc_hash
+        :return:
+        """
+        if not self.data_validation(data):
+            print("contain invalidate info.")
+            return False
+        if not self.get_book_data(data["bookname"]):
+            print("same Book already been uploaded, you can not upload.")
+            return False
+
+        sql_on, value_on = """insert into `books` (`book_name`, `book_path`, `integral_hash`, `bc_hash`)
+                values (%s, %s, %s, %s);
+                """, (data["bookname"], data["book_path"], data["integral_hash"], data["bc_hash"])
+        sql_user_property, val_pro = """insert into `user_property` (`account`, `owned_book`)
+        values (%s, %s)""", (data["account"], data["bookname"])
+
+        orders = {"normal": (sql_on, value_on), "normal1": (sql_user_property, val_pro)}
+        return self.execute_commit(orders)
+
+    def book_on_sell(self, data):
+        """
+        plan to implement verification and validation in another class.
+        :param data:
+        :return:
+        """
+        sql_booksell, val = """insert into `book_on_sell` (`account`, `shared_book`, `price`)
+                        values (%s, %s, %d)""", (data["account"], data["shared_book"], data["price"])
+
+        orders = {"normal": (sql_booksell, val)}
+        return self.execute_commit(orders)
+
+    def modify_book_selling(self):
+        ...
+
 
     def retrieve_database(self):
         ...
@@ -168,15 +263,17 @@ class Login(object):
     def __init__(self) -> None:
         ...
 
-
-def test_encryption():
-    db = Database_operation()
-    salt, pw = db.salt_generate(), "yfkHDD02034"
-    val = db.AES_encryption(pw, salt)
-    print(val,db.AES_decryption(val, salt), pw)
-
-
-if __name__ == "__main__":
-    res = test_encryption()
-
     # integration of encryption and insert, after insert to decrypt the value
+    #     try:
+    #         self.cursor.execute(sql_on, value_on)
+    #         self.conn.commit()
+    #
+    #         self.cursor.execute(sql_user_property, val_pro)
+    #         self.conn.commit()
+    #
+    #         time.sleep(2)
+    #         print("successfully insert value.")
+    #     except Exception as e:
+    #         return [f"{e}", False]
+    #
+    #     return ["", True]
