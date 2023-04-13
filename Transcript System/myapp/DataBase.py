@@ -170,34 +170,6 @@ class Database_operation(Link_Database):
             if not val: return False
         return True
 
-    # modification needed -----------------------------------------------------
-    def student_info_update(self, data: dict):
-        update_sql, upval = "", ()
-        for key, val in data.items():
-            if val is None:
-                print("Invalidate value, reject to update.")
-                return False
-        if data["table"] == "student_account":
-            update_sql = """
-        update `student_account` set %s=%s where `sid`=%s
-        """
-            upval = (self.update_standard["student_account"][data["col"]], data["val"], data["sid"])
-        elif data["table"] == "admin":
-            update_sql = """
-            update `student_account` set %s=%s where `sid`=%s
-            """
-            upval = (self.update_standard["admin"][data["col"]], data["val"], data["sid"])
-
-        if update_sql == "" or not upval:
-            print("Invalid input, reject to insert.")
-            return False
-        try:
-            self.cursor.execute(update_sql, upval)
-        except Exception as e:
-            print(f"Wrong Message {e}")
-            return False
-        return True
-# -------------------------------------------------------------
     def execute_commit(self, cursors: dict):
         for key, val in cursors.items():
             cursor, conn = None, None
@@ -275,6 +247,8 @@ class Database_operation(Link_Database):
 if __name__ == "__main__":
     db = Database_operation()
     print(db.get_book_data('aaa'))
+
+    
 class Login(object):
 
     def __init__(self) -> None:
