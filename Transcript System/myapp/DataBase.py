@@ -90,13 +90,15 @@ class Database_operation(Link_Database):
         self.cursor = self.return_cursor()
         self._salt_conn()
 
-    def get_user_data(self, sid, table="student_account"):
-        sql = """SELECT sa.*, ssu.university FROM `student_account`  as sa
-        INNER JOIN `student_submit_uni`  as ssu ON sa.sid = ssu.sid
-        where sa.sid=%s;
-        """
+    def get_user_data(self, account, table="student_account"):
+        sql = '''SELECT *FROM `user` LEFT JOIN `user_property` ON
+        `user`.account = `user_property`.account
+        LEFT JOIN `book_on_sell` ON
+        `user`.account = `book_on_sell`.account
+        WHERE `user`.account = %s;'''
+
         try:
-            self.cursor.execute(sql, (sid,))
+            self.cursor.execute(sql, (account,))
             results = self.cursor.fetchall()
         except Exception as e:
             print(f"Exception message is {e}")
@@ -105,7 +107,20 @@ class Database_operation(Link_Database):
         return results
 
     def get_book_data(self, bookname: str):
-        ...
+        sql = '''SELECT *FROM`books` LEFT JOIN `user_property` ON
+        `books`.book_name = `user_property`.owned_book
+        LEFT JOIN `book_on_sell` ON
+        `books`.book_name = `book_on_sell`.shared_book
+        WHERE `books`.book_name = %s;'''
+        try:
+            self.cursor.execute(sql, (bookname,))
+            results = self.cursor.fetchall()
+        except Exception as e:
+            print(f"Exception message is {e}")
+            return False
+
+        return results
+
 
     def salt_encode(self, salt: bytes):
         return salt.decode("iso-8859-1")
@@ -257,7 +272,9 @@ class Database_operation(Link_Database):
     def retrieve_database(self):
         ...
 
-
+if __name__ == "__main__":
+    db = Database_operation()
+    print(db.get_book_data('aaa'))
 class Login(object):
 
     def __init__(self) -> None:
