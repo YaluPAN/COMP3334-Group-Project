@@ -182,7 +182,7 @@ class Database_operation(Link_Database):
             print(f"Wrong Message {e}")
             return False
         return True
-
+# -------------------------------------------------------------
     def execute_commit(self, cursors: dict):
         for key, val in cursors.items():
             cursor, conn = None, None
@@ -219,7 +219,7 @@ class Database_operation(Link_Database):
     def books_update(self, data: dict):
         """
         when user plan to share and sold a book
-        :param data: contains book name, account, book_path, integral_hash, bc_hash
+        :param data: contains book name, account, bc_hash. book_name is supposed no longer than 50 words
         :return:
         """
         if not self.data_validation(data):
@@ -229,9 +229,9 @@ class Database_operation(Link_Database):
             print("same Book already been uploaded, you can not upload.")
             return False
 
-        sql_on, value_on = """insert into `books` (`book_name`, `book_path`, `integral_hash`, `bc_hash`)
-                values (%s, %s, %s, %s);
-                """, (data["bookname"], data["book_path"], data["integral_hash"], data["bc_hash"])
+        sql_on, value_on = """insert into `books` (`book_name`, `bc_hash`)
+                values (%s, %s);
+                """, (data["bookname"], data["bc_hash"])
         sql_user_property, val_pro = """insert into `user_property` (`account`, `owned_book`)
         values (%s, %s)""", (data["account"], data["bookname"])
 
