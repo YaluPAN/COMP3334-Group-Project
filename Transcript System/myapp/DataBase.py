@@ -90,13 +90,12 @@ class Database_operation(Link_Database):
         self.cursor = self.return_cursor()
         self._salt_conn()
 
-    def get_user_data(self, account, table="student_account"):
-        sql = '''SELECT *FROM `user` LEFT JOIN `user_property` ON
-        `user`.account = `user_property`.account
-        LEFT JOIN `book_on_sell` ON
-        `user`.account = `book_on_sell`.account
-        WHERE `user`.account = %s;'''
 
+
+    # when you know the account , you can gain the pw, name and its token
+    def get_account_info(self, account):
+        sql = '''SELECT pw, name, token FROM `user`
+        WHERE account = %s;'''
         try:
             self.cursor.execute(sql, (account,))
             results = self.cursor.fetchall()
@@ -105,22 +104,42 @@ class Database_operation(Link_Database):
             return False
 
         return results
-
-    def get_book_data(self, bookname: str):
-        sql = '''SELECT *FROM`books` LEFT JOIN `user_property` ON
-        `books`.book_name = `user_property`.owned_book
-        LEFT JOIN `book_on_sell` ON
-        `books`.book_name = `book_on_sell`.shared_book
-        WHERE `books`.book_name = %s;'''
+    # when you know the account, you can gain owned book name and its brought situation.
+    def get_account_book(self,account):
+        sql = '''SELECT owned_book, brought FROM `user_property`
+        WHERE account = %s;'''
         try:
-            self.cursor.execute(sql, (bookname,))
+            self.cursor.execute(sql, (account,))
             results = self.cursor.fetchall()
         except Exception as e:
             print(f"Exception message is {e}")
             return False
 
         return results
+    # when you know the account, know the shared book name and its price.
+    def get_account_shared(self,account):
+        sql = '''SELECT shared_book, price FROM `book_on_sell`
+        WHERE account = %s;'''
+        try:
+            self.cursor.execute(sql, (account,))
+            results = self.cursor.fetchall()
+        except Exception as e:
+            print(f"Exception message is {e}")
+            return False
 
+        return results
+    # when you know the book name, get the bc hash
+    def get_bookname_bchash(self, bookname:str):
+        sql = '''SELECT bc_hash FROM `books`
+        WHERE book_name = %s;'''
+        try:
+            self.cursor.execute(sql, bookname)
+            results = self.cursor.fetchall()
+        except Exception as e:
+            print(f"Exception message is {e}")
+            return False
+
+        return results
 
     def salt_encode(self, salt: bytes):
         return salt.decode("iso-8859-1")
@@ -246,7 +265,10 @@ class Database_operation(Link_Database):
 
 if __name__ == "__main__":
     db = Database_operation()
-    print(db.get_book_data('aaa'))
+    print(db.get_account_info('20074573d'))
+    print(db.get_account_shared('20074573d'))
+    print(db.get_account_book('20074573d'))
+    print(db.get_bookname_bchash('aaa'))
 
     
 class Login(object):
