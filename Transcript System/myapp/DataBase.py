@@ -90,8 +90,6 @@ class Database_operation(Link_Database):
         self.cursor = self.return_cursor()
         self._salt_conn()
 
-
-
     # when you know the account , you can gain the pw, name and its token
     def get_account_info(self, account):
         sql = '''SELECT pw, name, token FROM `user`
@@ -104,8 +102,9 @@ class Database_operation(Link_Database):
             return False
 
         return results
+
     # when you know the account, you can gain owned book name and its brought situation.
-    def get_account_book(self,account):
+    def get_account_book(self, account):
         sql = '''SELECT owned_book, brought FROM `user_property`
         WHERE account = %s;'''
         try:
@@ -116,8 +115,9 @@ class Database_operation(Link_Database):
             return False
 
         return results
+
     # when you know the account, know the shared book name and its price.
-    def get_account_shared(self,account):
+    def get_account_shared(self, account):
         sql = '''SELECT shared_book, price FROM `book_on_sell`
         WHERE account = %s;'''
         try:
@@ -128,13 +128,25 @@ class Database_operation(Link_Database):
             return False
 
         return results
+
     # when you know the book name, get the bc hash
-    def get_bookname_bchash(self, bookname:str):
+    def get_bookname_bchash(self, bookname: str):
         sql = '''SELECT bc_hash FROM `books`
         WHERE book_name = %s;'''
         try:
             self.cursor.execute(sql, bookname)
             results = self.cursor.fetchall()
+        except Exception as e:
+            print(f"Exception message is {e}")
+            return False
+
+        return results
+
+    def get_salt(self, account):
+        sql = '''select salt from `salt_hash` where account=%s;'''
+        try:
+            self._saltcursor.execute(sql, account)
+            results = self._saltcursor.fetchall()
         except Exception as e:
             print(f"Exception message is {e}")
             return False
@@ -182,7 +194,7 @@ class Database_operation(Link_Database):
         return self.AES_encryption(pw, salt), self.salt_encode(salt)
 
     def sid_validation(self, sid: str):
-        return self.get_user_data(sid)
+        return self.get_account_book(sid)
 
     def data_validation(self, data: dict) -> bool:
         for key, val in data.items():
@@ -194,7 +206,7 @@ class Database_operation(Link_Database):
             cursor, conn = None, None
             if key[0:6] == "normal":
                 cursor, conn = self.cursor, self.conn
-            elif key == "salt":
+            elif key[0:4] == "salt":
                 cursor, conn = self._saltcursor, self._saltconn
             else:
                 return ["invalidate order, reject to execute", False]
@@ -208,69 +220,78 @@ class Database_operation(Link_Database):
         return ["successfully injected", True]
 
     def sign_up_insert(self, account: str, password: str, name: str, token: int = 50) -> list:
-        if self.sid_validation(account):
-            warnings.warn(f"SID {account} already exist, cannot register again")
-            return ["", False]
+        # validation needed
         pw_encoded, salt = self.pw_encode(password)
 
-        sql_pw, val_pw = """INSERT INTO `user` (`account`, `pw`, `name`, `token`)
-                         values (%s, %s, %s, %d);""", \
-                         (account, pw_encoded, name, token)
-        sql_salt, val_salt = "INSERT INTO `salt spy` (`account`, `salt`) values (%s, %s);", \
+        sql_pw, val_pw = """INSERT INTO `user` (`account`, `pw`, `name`, `token`) values (%s, %s, %s, %s);""", \
+                         (account, pw_encoded, name, int(token))
+        sql_salt, val_salt = "INSERT INTO `salt_hash` (`account`, `salt`) values (%s, %s);", \
                              (account, salt)
 
         orders = {"normal": (sql_pw, val_pw), "salt": (sql_salt, val_salt)}
         return self.execute_commit(orders)
 
-    def books_update(self, data: dict):
+    def books_insert(self, data: dict):
         """
         when user plan to share and sold a book
         :param data: contains book name, account, bc_hash. book_name is supposed no longer than 50 words
         :return:
         """
-        if not self.data_validation(data):
-            print("contain invalidate info.")
-            return False
-        if not self.get_book_data(data["bookname"]):
-            print("same Book already been uploaded, you can not upload.")
-            return False
-
-        sql_on, value_on = """insert into `books` (`book_name`, `bc_hash`)
-                values (%s, %s);
-                """, (data["bookname"], data["bc_hash"])
-        sql_user_property, val_pro = """insert into `user_property` (`account`, `owned_book`)
-        values (%s, %s)""", (data["account"], data["bookname"])
+        sql_on, value_on = """insert into `books` (`book_name`, `bc_hash`) values (%s, %s);""", \
+                           (data["bookname"], data["bc_hash"])
+        sql_user_property, val_pro = """insert into `user_property` (`account`, `owned_book`, `brought`) values (%s, %s, %s)""", \
+                                     (data["account"], data["bookname"], False)
 
         orders = {"normal": (sql_on, value_on), "normal1": (sql_user_property, val_pro)}
         return self.execute_commit(orders)
 
-    def book_on_sell(self, data):
+    def book_on_sell_insert(self, data):
         """
         plan to implement verification and validation in another class.
         :param data:
         :return:
         """
         sql_booksell, val = """insert into `book_on_sell` (`account`, `shared_book`, `price`)
-                        values (%s, %s, %d)""", (data["account"], data["shared_book"], data["price"])
+                        values (%s, %s, %s)""", (data["account"], data["shared_book"], data["price"])
 
         orders = {"normal": (sql_booksell, val)}
         return self.execute_commit(orders)
 
-    def modify_book_selling(self):
-        ...
+    def user_property_insert(self, data: dict):
+        """
+        used to update table user_property when user buy a book
+        :param data:
+        """
+        sql, value = """insert into `user_property` (`account`, `owned_book`, `brought`)
+                    values (%s, %s, %s);""", \
+                     (data["account"], data["book"], data["buy"])
+        orders = {"normal": (sql, value)}
+        return self.execute_commit(orders)
+
+    def user_token_update(self, data):
+        """
+        update user token after buying a book.
+        :param data:
+        """
+        sql, value = """update `user` 
+        set `user`.`token`=%s where `user`.`account`=%s;""", (data["token"], data["account"])
+
+        orders = {"normal": (sql, value)}
+        return self.execute_commit(orders)
 
 
-    def retrieve_database(self):
-        ...
+def insert_test():
+    db = Database_operation()
+    data = {"account": "21044728D", "shared_book": "data structure", "price": 20}
+    db.book_on_sell_insert(data)
+
 
 if __name__ == "__main__":
-    db = Database_operation()
-    print(db.get_account_info('20074573d'))
-    print(db.get_account_shared('20074573d'))
-    print(db.get_account_book('20074573d'))
-    print(db.get_bookname_bchash('aaa'))
+    insert_test()
+    # db=Database_operation()
+    # print(db.get_salt("21044728D"))
 
-    
+
 class Login(object):
 
     def __init__(self) -> None:
