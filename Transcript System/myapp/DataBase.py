@@ -297,17 +297,3 @@ class Login(object):
     def __init__(self) -> None:
         ...
 
-    # integration of encryption and insert, after insert to decrypt the value
-    #     try:
-    #         self.cursor.execute(sql_on, value_on)
-    #         self.conn.commit()
-    #
-    #         self.cursor.execute(sql_user_property, val_pro)
-    #         self.conn.commit()
-    #
-    #         time.sleep(2)
-    #         print("successfully insert value.")
-    #     except Exception as e:
-    #         return [f"{e}", False]
-    #
-    #     return ["", True]
