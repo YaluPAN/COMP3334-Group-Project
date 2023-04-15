@@ -92,7 +92,7 @@ class Database_operation(Link_Database):
 
     # when you know the account , you can gain the pw, name and its token
     def get_account_info(self, account):
-        sql = '''SELECT pw, name, token FROM `user`
+        sql = '''SELECT * FROM `user`
         WHERE account = %s;'''
         sql_salt = '''select salt from `salt_hash` where account=%s'''
 
@@ -226,12 +226,12 @@ class Database_operation(Link_Database):
 
         return ["successfully injected", True]
 
-    def sign_up_insert(self, account: str, password: str, name: str, token: int = 50) -> list:
+    def sign_up_insert(self, account: str, password: str, token: int = 50) -> list:
         # validation needed
+        if not password or not account: return []
         pw_encoded, salt = self.pw_encode(password)
-
-        sql_pw, val_pw = """INSERT INTO `user` (`account`, `pw`, `name`, `token`) values (%s, %s, %s, %s);""", \
-                         (account, pw_encoded, name, int(token))
+        sql_pw, val_pw = """INSERT INTO `user` (`account`, `pw`, `token`) values (%s, %s, %s);""", \
+                         (account, pw_encoded, int(token))
         sql_salt, val_salt = "INSERT INTO `salt_hash` (`account`, `salt`) values (%s, %s);", \
                              (account, salt)
 
@@ -292,7 +292,7 @@ class Database_operation(Link_Database):
 
 def insert_test():
     db = Database_operation()
-    db.sign_up_insert("2004478D", "yfksdfguyt", "abababa")
+    db.sign_up_insert("2004478D", "yfksdfguyt")
     data_book_insert = {"account": "2004478D", "bookname": "First Glance on Ding-Zhen", "bc_hash": "0xF35346"}
     db.books_insert(data_book_insert)
     data = {"account": "2004478D", "shared_book": "First Glance on Ding-Zhen", "price": 50}
@@ -308,8 +308,8 @@ def test_encryption():
 
 if __name__ == "__main__":
     db=Database_operation()
-    datas={"bc_hash": "QmZMJJpqhNHJcpdUSBEGASsUmAZdCfabMnBFebMZLVHtws", "bookname": "blockchain_new", "account": "2004478D"}
-    print(db.books_insert(datas))
+    print(db.get_account_info('2004478D'))
+
 
 
 class Login(object):
