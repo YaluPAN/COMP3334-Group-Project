@@ -282,8 +282,12 @@ class Database_operation(Link_Database):
 
 def insert_test():
     db = Database_operation()
-    data = {"account": "21044728D", "shared_book": "data structure", "price": 20}
+    db.sign_up_insert("2004478D", "yfksdfguyt", "abababa")
+    data_book_insert = {"account": "2004478D", "bookname": "First Glance on Ding-Zhen", "bc_hash": "0xF35346"}
+    db.books_insert(data_book_insert)
+    data = {"account": "2004478D", "shared_book": "First Glance on Ding-Zhen", "price": 50}
     db.book_on_sell_insert(data)
+    update_token={"account": "200"}
 
 
 if __name__ == "__main__":
@@ -296,4 +300,3 @@ class Login(object):
 
     def __init__(self) -> None:
         ...
-

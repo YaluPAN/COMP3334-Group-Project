@@ -26,3 +26,22 @@ def student_info_update(self, data: dict):
         return False
     return True
 # -------------------------------------------------------------
+
+# if self.sid_validation(account):
+#     warnings.warn(f"SID {account} already exist, cannot register again")
+#     return ["", False]
+
+# integration of encryption and insert, after insert to decrypt the value
+#     try:
+#         self.cursor.execute(sql_on, value_on)
+#         self.conn.commit()
+#
+#         self.cursor.execute(sql_user_property, val_pro)
+#         self.conn.commit()
+#
+#         time.sleep(2)
+#         print("successfully insert value.")
+#     except Exception as e:
+#         return [f"{e}", False]
+#
+#     return ["", True]
