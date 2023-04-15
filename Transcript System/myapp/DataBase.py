@@ -94,14 +94,18 @@ class Database_operation(Link_Database):
     def get_account_info(self, account):
         sql = '''SELECT pw, name, token FROM `user`
         WHERE account = %s;'''
+        sql_salt = '''select salt from `salt_hash` where account=%s'''
+
         try:
             self.cursor.execute(sql, (account,))
             results = self.cursor.fetchall()
+            self._saltcursor.execute(sql_salt, (account,))
+            results1 = self._saltcursor.fetchall()
         except Exception as e:
             print(f"Exception message is {e}")
             return False
 
-        return results
+        return (results, results1)
 
     # when you know the account, you can gain owned book name and its brought situation.
     def get_account_book(self, account):
@@ -131,16 +135,19 @@ class Database_operation(Link_Database):
 
     # when you know the book name, get the bc hash
     def get_bookname_bchash(self, bookname: str):
-        sql = '''SELECT bc_hash FROM `books`
-        WHERE book_name = %s;'''
+        sql, values= '''SELECT bc_hash FROM `books`
+        WHERE book_name = %s;''', (bookname, )
+        sql_salt='''select salt from `bc_hash` where book_name=%s;'''
         try:
             self.cursor.execute(sql, bookname)
             results = self.cursor.fetchall()
+            self._saltcursor.execute(sql_salt, values)
+            result_salt=self._saltcursor.fetchall()
         except Exception as e:
             print(f"Exception message is {e}")
             return False
 
-        return results
+        return (results, result_salt)
 
     def get_salt(self, account):
         sql = '''select salt from `salt_hash` where account=%s;'''
@@ -191,7 +198,7 @@ class Database_operation(Link_Database):
 
     def pw_encode(self, pw: str):
         salt = self.salt_generate()
-        return self.AES_encryption(pw, salt), self.salt_encode(salt)
+        return self.AES_encryption(pw, salt), salt
 
     def sid_validation(self, sid: str):
         return self.get_account_book(sid)
@@ -237,12 +244,15 @@ class Database_operation(Link_Database):
         :param data: contains book name, account, bc_hash. book_name is supposed no longer than 50 words
         :return:
         """
+        data["bc_hash"], hash_salt=self.pw_encode(data["bc_hash"])
         sql_on, value_on = """insert into `books` (`book_name`, `bc_hash`) values (%s, %s);""", \
                            (data["bookname"], data["bc_hash"])
+        sql_salt, value_salt="""insert into `bc_hash`(`book_name`, `salt`) values (%s, %s);""",\
+                             (data["bookname"], hash_salt)
         sql_user_property, val_pro = """insert into `user_property` (`account`, `owned_book`, `brought`) values (%s, %s, %s)""", \
                                      (data["account"], data["bookname"], False)
 
-        orders = {"normal": (sql_on, value_on), "normal1": (sql_user_property, val_pro)}
+        orders = {"normal": (sql_on, value_on), "normal1": (sql_user_property, val_pro), "salt": (sql_salt, value_salt)}
         return self.execute_commit(orders)
 
     def book_on_sell_insert(self, data):
@@ -287,13 +297,19 @@ def insert_test():
     db.books_insert(data_book_insert)
     data = {"account": "2004478D", "shared_book": "First Glance on Ding-Zhen", "price": 50}
     db.book_on_sell_insert(data)
-    update_token={"account": "200"}
+
+def test_encryption():
+    db=Database_operation()
+    res=db.get_bookname_bchash("blockchain_new")
+    salt_val, hashes=res[1][0][0], res[0][0][0]
+    db.AES_decryption(hashes, salt_val)
+
 
 
 if __name__ == "__main__":
-    insert_test()
-    # db=Database_operation()
-    # print(db.get_salt("21044728D"))
+    db=Database_operation()
+    datas={"bc_hash": "QmZMJJpqhNHJcpdUSBEGASsUmAZdCfabMnBFebMZLVHtws", "bookname": "blockchain_new", "account": "2004478D"}
+    print(db.books_insert(datas))
 
 
 class Login(object):
