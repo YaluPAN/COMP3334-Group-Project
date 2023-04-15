@@ -147,7 +147,7 @@
 <body>
 	<h1>Textbook Exchange System</h1>
     
-	<button class="logout" onclick="location.href=`{{ url_for('login') }}`">Logout</button> 
+	<button class="logout" onclick="location.href=`{{ url_for('login') }}`">Logout</button>
 	<!-- url_for()括号中的是app.py中定义的路由函数名!! -->
 
 	<div class="book-list">
@@ -192,7 +192,7 @@
             {% endfor %}
         </ul>
         
-        <button class = "make_contribute" onclick="location.href=`{{ url_for('contribute') }}`">Make a Contribution</button> 
+        <button class = "make_contribute" onclick="location.href=`contribute.html`">Make a Contribution</button>
     </div>
 </body>
 </html>
