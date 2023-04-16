@@ -35,10 +35,10 @@ def pw_decryption(account:str):
 def login():
     username = request.form.get("username")
     password = request.form.get("password")
-    print(username, password, "#----------------------------------------------")
     verify_user = db.get_account_info(username)[0]
     if verify_user:
         if username == verify_user[0][0] and password == pw_decryption(username):
+            session["username"] = username
             return redirect(url_for("home"))
     else:
         flash("Incorrect username or password. Please try again.")
@@ -91,23 +91,51 @@ def signup():
 
 @app.route('/home')  # 渲染home.html
 def home():
-    books = [
-        {'title': 'Book 1', 'contributor': 'Contributor 1', 'price': '$10'},
-        {'title': 'Book 2', 'contributor': 'Contributor 2', 'price': '$20'},
-        {'title': 'Book 3', 'contributor': 'Contributor 3', 'price': '$20'},
-        # Add more books here
-    ]
-    account_id = '12345'
-    user_name = 'John Doe'
-    token_number = 'ABCDE12345'
-    purchased_books = ['Book 1', 'Book 2']
-    contributed_books = ['Book 3', 'Book 4']
+    user_name = session.get("username")
+    token_number = db.get_account_info(user_name)[0][0][2]
+    owned_book = []
+    for i in db.get_account_book(user_name):
+        owned_book.append(i[0])
+    contributed_book = []
+    for i in db.get_account_shared(user_name):
+        contributed_book.append(i[0])
 
-    return render_template('home.html', books=books, account_id=account_id,
+    purchased_book = []
+    for i in owned_book:
+        if i not in contributed_book: purchased_book.append(i)
+    all_user = db.get_all_user()
+    all_book_shared = []
+    for i in all_user:
+        shared_book=db.get_account_shared(i[0])
+        if not shared_book: continue
+        all_book_shared.append(db.get_account_shared(i[0])[0][0])
+    free_book = []
+    for i in all_book_shared:
+        if i not in owned_book: free_book.append(i)
+    print("all book shared-----", all_book_shared)
+
+    books = []
+    for i in range(0, len(free_book)):
+        books.append({'title': free_book[i], 'contributor': db.get_book_seller(free_book[i])[0][0], 'price': db.get_price_by_book(free_book[i])[0][0]})
+    print(books)
+
+
+    # books = [
+    #     {'title': 'Book 1', 'contributor': 'Contributor 1', 'price': '$10'},
+    #     {'title': 'Book 2', 'contributor': 'Contributor 2', 'price': '$20'},
+    #     {'title': 'Book 3', 'contributor': 'Contributor 3', 'price': '$20'},
+    #     # Add more books here
+    # ]
+
+
+
+
+
+    return render_template('home.html', books=books,
                            user_name=user_name,
                            token_number=token_number,
-                           purchased_books=purchased_books,
-                           contributed_books=contributed_books)
+                           purchased_books=purchased_book,
+                           contributed_books=contributed_book)
 
 
 @app.route('/logout')  # 在home.html中，点击“Logout”按钮时，会调用logout()函数，返回login.html

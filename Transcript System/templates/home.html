@@ -140,6 +140,7 @@
 		function buyBook(title) {
 			if (confirm("Are you sure you want to buy " + title + "?")) {
 				// TODO: Handle buy logic
+				// token_number
 			}
 		}
 	</script>
@@ -176,8 +177,8 @@
 
 	<div class="account-info">
         <h2>Account Information</h2>
-        <p>Account ID: {{ account_id }}</p>
-        <p>User Name: {{ user_name }}</p>
+<!--        <p>Account ID: {{ account_id }}</p>-->
+        <p>Account ID: {{ user_name }}</p>
         <p>Token Number: {{ token_number }}</p>
         <p>List of Purchased Books:</p>
         <ul>

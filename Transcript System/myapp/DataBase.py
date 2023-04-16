@@ -107,6 +107,27 @@ class Database_operation(Link_Database):
 
         return (results, results1)
 
+    def get_all_user(self):
+        sql='''select account from `user`;'''
+        try:
+            self.cursor.execute(sql)
+            results = self.cursor.fetchall()
+        except Exception as e:
+            print(f"Exception message is {e}")
+            return False
+        return results
+
+
+    def get_price_by_book(self, bkname: str):
+        sql, val='''select `price` from `book_on_sell` where `shared_book`=%s;''', (bkname, )
+        try:
+            self.cursor.execute(sql, val)
+            results = self.cursor.fetchall()
+        except Exception as e:
+            print(f"Exception message is {e}")
+            return False
+        return results
+
     # when you know the account, you can gain owned book name and its brought situation.
     def get_account_book(self, account):
         sql = '''SELECT owned_book, brought FROM `user_property`
@@ -148,6 +169,24 @@ class Database_operation(Link_Database):
             return False
 
         return (results, result_salt)
+
+    def get_book_seller(self, bookname: str):
+        sql, val="select account from `book_on_sell` where `shared_book`=%s;", (bookname, )
+        try:
+            self.cursor.execute(sql, val)
+            res=self.cursor.fetchall()
+        except Exception as e:
+            return [f"exception message is {e}", False]
+        return res
+
+    def get_all_book(self):
+        sql="select `book_name` from `books`"
+        try:
+            self.cursor.execute(sql)
+            res=self.cursor.fetchall()
+        except Exception as e:
+            return [f"exception message is {e}", False]
+        return res
 
     def get_salt(self, account):
         sql = '''select salt from `salt_hash` where account=%s;'''
@@ -292,11 +331,13 @@ class Database_operation(Link_Database):
 
 def insert_test():
     db = Database_operation()
-    db.sign_up_insert("2004478D", "yfksdfguyt")
-    data_book_insert = {"account": "2004478D", "bookname": "First Glance on Ding-Zhen", "bc_hash": "0xF35346"}
-    db.books_insert(data_book_insert)
-    data = {"account": "2004478D", "shared_book": "First Glance on Ding-Zhen", "price": 50}
+    # db.sign_up_insert("2004478D", "yfksdfguyt")
+    # data_book_insert = {"account": "guhoipjo", "bookname": "C++--from entre to tomb", "bc_hash": "0xF3598dgbffrt"}
+    # db.books_insert(data_book_insert)
+    data = {"account": "ghiojpkl", "shared_book": "my de craft", "price": 20}
     db.book_on_sell_insert(data)
+    # db.user_token_update({"token": 40, "account": "2004478D"})
+    # db.user_property_insert({"book": "my craft", "account": "2004478D", "buy": True})
 
 def test_encryption():
     db=Database_operation()
@@ -304,15 +345,20 @@ def test_encryption():
     salt_val, hashes=res[1][0][0], res[0][0][0]
     db.AES_decryption(hashes, salt_val)
 
-
-
 if __name__ == "__main__":
-    db=Database_operation()
-    print(db.get_account_info('2004478D'))
-
-
-
-class Login(object):
-
-    def __init__(self) -> None:
-        ...
+    # insert_test()
+    db = Database_operation()
+    # print(db.get_account_shared('2004478d')[0][0])
+    # print(db.get_price_by_book("C++--from entre to tomb"))
+    # print(db.get_account_book('2004478d'))
+    # print(db.get_account_book('2004478d')[0][0])
+    # print(db.get_account_book('2004478d')[0])
+    # print("-----")
+    # list1 = []
+    # for i in db.get_account_book('2004478d'):
+    #     list1.append(i[0])
+    # print(list1)
+    # list2 = []
+    # for i in db.get_account_shared('2004478d'):
+    #     list2.append(i[0])
+    # print(list2)
