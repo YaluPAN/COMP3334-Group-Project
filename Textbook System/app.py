@@ -13,15 +13,20 @@ import io
 
 app = Flask(__name__)
 
+
 @app.errorhandler(500)
 def internal_server_error(e):
     return jsonify(error=str(e)), 500
 
+
 import requests
+
 
 def save_to_ipfs(file_path):
     pinata_api_key = "c5948b18b8a7629fe5da"
-    pinata_secret_api_key = "c60ce6a2dab928d4607837992c69a0e9e45b349b232393f0ee222ab8fdd5a512"
+    pinata_secret_api_key = (
+        "c60ce6a2dab928d4607837992c69a0e9e45b349b232393f0ee222ab8fdd5a512"
+    )
     # Update the following path with the correct path to your CA certificates file
     cert_path = "root_certificates.pem"
     url = "https://api.pinata.cloud/pinning/pinFileToIPFS"
@@ -45,10 +50,9 @@ def save_to_ipfs(file_path):
     return file_cid
 
 
-
-@app.route('/upload_to_pinata', methods=['POST'])
+@app.route("/upload_to_pinata", methods=["POST"])
 def upload_to_pinata():
-    file = request.files['file']
+    file = request.files["file"]
     filename = secure_filename(file.filename)
 
     # 将文件保存到临时文件夹
@@ -60,55 +64,61 @@ def upload_to_pinata():
     file_cid = save_to_ipfs(temp_file_path)
     return {"file_cid": file_cid}
 
-@app.route('/login', methods=['GET', 'POST'])  # 渲染login.html
+
+@app.route("/login", methods=["GET", "POST"])  # 渲染login.html
 def login():
-    if request.method == 'POST':
+    if request.method == "POST":
         # 检查用户提供的凭据是否正确
-        username = request.form['username']
-        password = request.form['password']
-        if username == 'your_username' and password == 'your_password':
+        username = request.form["username"]
+        password = request.form["password"]
+        if username == "your_username" and password == "your_password":
             # 设置用户登录状态并重定向到 home 页面
-            session['username'] = username
-            return redirect(url_for('home'))
+            session["username"] = username
+            return redirect(url_for("home"))
         else:
             # 如果凭据不正确，则返回登录页面并显示错误消息
-            return render_template('login.html', error='Invalid username or password')
+            return render_template("login.html", error="Invalid username or password")
     else:
         # 渲染登录页面
-        return render_template('login.html')
+        return render_template("login.html")
 
 
-@app.route('/')  # 渲染home.html
+@app.route("/")  # 渲染home.html
 def home():
     # 从 books.txt 文件中读取书籍列表
-    with open('/Users/kevin/Desktop/Textbook System/books.txt', 'r') as f:
+    with open("/Users/kevin/Desktop/Textbook System/books.txt", "r") as f:
         books_data = f.readlines()
 
     # 解析书籍数据，并将其转换为字典列表
     books = []
     for book_data in books_data:
-        title, contributor, price, cid = book_data.strip().split(',')
-        books.append({'title': title, 'contributor': contributor, 'price': price, 'cid': cid})
+        title, contributor, price, cid = book_data.strip().split(",")
+        books.append(
+            {"title": title, "contributor": contributor, "price": price, "cid": cid}
+        )
 
-    account_id = '12345'
-    user_name = 'John Doe'
-    token_number = 'ABCDE12345'
-    purchased_books = ['Book 1', 'Book 2']
-    contributed_books = ['Book 3', 'Book 4']
+    account_id = "12345"
+    user_name = "John Doe"
+    token_number = "ABCDE12345"
+    purchased_books = ["Book 1", "Book 2"]
+    contributed_books = ["Book 3", "Book 4"]
 
-    return render_template('home.html', books=books, account_id=account_id,
-                           user_name=user_name,
-                           token_number=token_number,
-                           purchased_books=purchased_books,
-                           contributed_books=contributed_books)
+    return render_template(
+        "home.html",
+        books=books,
+        account_id=account_id,
+        user_name=user_name,
+        token_number=token_number,
+        purchased_books=purchased_books,
+        contributed_books=contributed_books,
+    )
 
 
-
-@app.route('/logout')  # 在home.html中，点击“Logout”按钮时，会调用logout()函数，返回login.html
+@app.route("/logout")  # 在home.html中，点击“Logout”按钮时，会调用logout()函数，返回login.html
 def logout():
     # 从 session 中删除用户信息，并重定向到 login 页面
-    session.pop('username', None)
-    return redirect(url_for('login'))
+    session.pop("username", None)
+    return redirect(url_for("login"))
 
 
 # 在home.html中，点击“Make a Contribution”按钮时，会调用make_contribute()函数，进入contribute.html
@@ -118,20 +128,21 @@ def logout():
 
 
 class UploadForm(FlaskForm):
-    book_title = StringField('Book Title')
-    token_price = StringField('Token Price')
-    file = FileField('Upload', validators=[FileAllowed(['pdf', 'txt', 'doc'])])
+    book_title = StringField("Book Title")
+    token_price = StringField("Token Price")
+    file = FileField("Upload", validators=[FileAllowed(["pdf", "txt", "doc"])])
 
 
-@app.route('/contribute', methods=['GET', 'POST'])  # 渲染contribute.html
+@app.route("/contribute", methods=["GET", "POST"])  # 渲染contribute.html
 def contribute():
-    return render_template('contribute.html')
+    return render_template("contribute.html")
 
-@app.route('/submit', methods=['POST'])
+
+@app.route("/submit", methods=["POST"])
 def submit():
-    book_title = request.form['bookTitle']
-    token_price = request.form['tokenPrice']
-    file = request.files['fileInput']
+    book_title = request.form["bookTitle"]
+    token_price = request.form["tokenPrice"]
+    file = request.files["fileInput"]
     filename = secure_filename(file.filename)
 
     # 将文件保存到临时文件夹
@@ -142,19 +153,32 @@ def submit():
     # 保存文件到IPFS并获取CID
     book_hash = save_to_ipfs(temp_file_path)
 
-    return redirect(url_for('receipt', book_title=book_title, token_price=token_price, book_hash=book_hash))
+    return redirect(
+        url_for(
+            "receipt",
+            book_title=book_title,
+            token_price=token_price,
+            book_hash=book_hash,
+        )
+    )
 
 
-@app.route('/receipt')
+@app.route("/receipt")
 def receipt():
-    book_title = request.args.get('bookTitle')
-    token_price = request.args.get('tokenPrice')
-    book_hash = request.args.get('fileHash')
-    return render_template('receipt.html', book_title=book_title, token_price=token_price, book_hash=book_hash)
+    book_title = request.args.get("bookTitle")
+    token_price = request.args.get("tokenPrice")
+    book_hash = request.args.get("fileHash")
+    return render_template(
+        "receipt.html",
+        book_title=book_title,
+        token_price=token_price,
+        book_hash=book_hash,
+    )
 
-@app.route('/download', methods=['GET'])
+
+@app.route("/download", methods=["GET"])
 def download():
-    cid = request.args.get('cid', None)
+    cid = request.args.get("cid", None)
 
     if not cid:
         return jsonify({"error": "Missing CID parameter"}), 400
@@ -165,11 +189,11 @@ def download():
     response = requests.get(file_url, stream=True)
 
     if response.status_code == 200:
-        '''
+        """
         content_type = response.headers.get('Content-Type')
         if content_type != 'application/pdf':
             return jsonify({"error": "The file downloaded is not a PDF"}), 400
-        '''
+        """
         file_data = io.BytesIO()
         for chunk in response.iter_content(chunk_size=8192):
             file_data.write(chunk)
@@ -180,10 +204,15 @@ def download():
         # Make sure to sanitize the filename
         file_name = "downloaded_file"
 
-        return send_file(file_data, as_attachment=True, download_name=file_name, mimetype='application/pdf')
+        return send_file(
+            file_data,
+            as_attachment=True,
+            download_name=file_name,
+            mimetype="application/pdf",
+        )
     else:
         return jsonify({"error": "Error downloading file from IPFS"}), 500
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
