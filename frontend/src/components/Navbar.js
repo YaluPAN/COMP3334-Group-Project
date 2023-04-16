@@ -12,23 +12,7 @@ function Navbar(props) {
 
   // const userLink = <Link to="/cart">Hello, {username}!</Link>
 
-  return (
-    <div className={classes.navbar}>
-      {/* //{' '}
-      <Link to="/" className={classes.brand}>
-        // {props.brand}
-        //{' '}
-      </Link>
-      //{' '}
-      <div className={classes.navLinks}>
-        // {isLoggedIn && userLink}
-        // {isLoggedIn ? logoutLink : loginLink}
-        // <Link to="/cart">Cart</Link>
-        //{' '}
-      </div>
-      //{' '} */}
-    </div>
-  )
+  return <div></div>
 }
 
 export default Navbar
