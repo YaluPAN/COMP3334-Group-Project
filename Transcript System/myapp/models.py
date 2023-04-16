@@ -11,11 +11,9 @@ class User(UserMixin, db.Model):
 
 class Transcript(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(
-        db.Integer, db.ForeignKey('user.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     ipfs_hash = db.Column(db.String(120), nullable=False)
-    student = db.relationship(
-        'User', backref=db.backref('transcripts', lazy=True))
+    student = db.relationship("User", backref=db.backref("transcripts", lazy=True))
 
 
 @login_manager.user_loader
