@@ -15,14 +15,20 @@ from flask import send_file
 import io
 
 app = Flask(__name__)
+
+
 #
 @app.errorhandler(500)
 def internal_server_error(e):
     return jsonify(error=str(e)), 500
+
+
 #
 def save_to_ipfs(file_path):
     pinata_api_key = "c5948b18b8a7629fe5da"
-    pinata_secret_api_key = "c60ce6a2dab928d4607837992c69a0e9e45b349b232393f0ee222ab8fdd5a512"
+    pinata_secret_api_key = (
+        "c60ce6a2dab928d4607837992c69a0e9e45b349b232393f0ee222ab8fdd5a512"
+    )
     # Update the following path with the correct path to your CA certificates file
     cert_path = "root_certificates.pem"
     url = "https://api.pinata.cloud/pinning/pinFileToIPFS"
@@ -44,10 +50,12 @@ def save_to_ipfs(file_path):
         raise Exception("Error uploading to Pinata: {}".format(response.text))
 
     return file_cid
+
+
 #
-@app.route('/upload_to_pinata', methods=['POST'])
+@app.route("/upload_to_pinata", methods=["POST"])
 def upload_to_pinata():
-    file = request.files['file']
+    file = request.files["file"]
     filename = secure_filename(file.filename)
 
     # 将文件保存到临时文件夹
@@ -58,13 +66,6 @@ def upload_to_pinata():
     # 保存文件到 IPFS 并获取 CID
     file_cid = save_to_ipfs(temp_file_path)
     return {"file_cid": file_cid}
-
-
-
-
-
-
-
 
 
 db = DataBase.Database_operation()
@@ -89,10 +90,12 @@ def pw_decryption(account: str):
     print(salt_val, hashes, "#----------------decryption", res)
     return db.AES_decryption(hashes, salt_val)
 
+
 def bc_hash_decryption(bkname: str):
     res = db.get_bookname_bchash(bkname)
     salt_val, hashes = res[1][0][0], res[0][0][0]
     return db.AES_decryption(hashes, salt_val)
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -186,14 +189,14 @@ def home():
             }
         )
     print(books)
-    books_cid_add=[]
+    books_cid_add = []
     for i in range(0, len(free_book)):
         books_cid_add.append(
             {
                 "title": free_book[i],
                 "contributor": db.get_book_seller(free_book[i])[0][0],
                 "price": db.get_price_by_book(free_book[i])[0][0],
-                "bc_hash": bc_hash_decryption(free_book[i])
+                "bc_hash": bc_hash_decryption(free_book[i]),
             }
         )
     # books = [
@@ -282,7 +285,10 @@ def submit():
 
     return redirect(
         url_for(
-            "receipt", book_title=book_title, token_price=token_price, book_hash=book_hash
+            "receipt",
+            book_title=book_title,
+            token_price=token_price,
+            book_hash=book_hash,
         )
     )
 
@@ -291,10 +297,13 @@ def submit():
 def receipt():
     book_title = request.args.get("book_title")
     token_price = request.args.get("token_price")
-    book_hash = request.args.get('fileHash')
+    book_hash = request.args.get("fileHash")
 
     return render_template(
-        "receipt.html", book_title=book_title, token_price=token_price,book_hash=book_hash
+        "receipt.html",
+        book_title=book_title,
+        token_price=token_price,
+        book_hash=book_hash,
     )
 
 

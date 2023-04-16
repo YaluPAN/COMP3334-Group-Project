@@ -86,7 +86,7 @@ def login():
 @app.route("/")  # 渲染home.html
 def home():
     # 从 books.txt 文件中读取书籍列表
-    with open("/Users/kevin/Desktop/Textbook System/books.txt", "r") as f:
+    with open("Textbook System/books.txt", "r") as f:
         books_data = f.readlines()
 
     # 解析书籍数据，并将其转换为字典列表
