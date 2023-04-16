@@ -93,6 +93,7 @@ def signup():
 def home():
     user_name = session.get("username")
     token_number = db.get_account_info(user_name)[0][0][2]
+    session['token_number'] = token_number
     owned_book = []
     for i in db.get_account_book(user_name):
         owned_book.append(i[0])
@@ -112,7 +113,6 @@ def home():
     free_book = []
     for i in all_book_shared:
         if i not in owned_book: free_book.append(i)
-    print("all book shared-----", all_book_shared)
 
     books = []
     for i in range(0, len(free_book)):
@@ -137,6 +137,31 @@ def home():
                            purchased_books=purchased_book,
                            contributed_books=contributed_book)
 
+@app.route('/buy', methods=['GET','POST'])
+def buy():
+    user_name = session.get("username")
+    title = request.form.get('title')
+    price = float(request.form.get('price'))
+    token_number = session.get('token_number')
+    if token_number is None:
+        return "User not logged in", 401
+    if token_number < price:
+        return "Not enough tokens", 400
+
+    token_number -= price
+    orders = {"account": user_name, "token": token_number}
+    db.user_token_update(orders)
+
+    target_user = db.get_book_seller(title)[0][0]
+    token_for_target_user = db.get_account_info(target_user)[0][0][2]
+    print(token_for_target_user, target_user, "#-----------------")
+    token_for_target_user += price
+    orders = {"account": target_user, "token": token_for_target_user}
+    db.user_token_update(orders)
+    db.user_property_insert({"account": user_name, "book": title, "buy": 1})
+
+    session['token_number'] = token_number
+    return redirect(url_for('home'))
 
 @app.route('/logout')  # 在home.html中，点击“Logout”按钮时，会调用logout()函数，返回login.html
 def logout():

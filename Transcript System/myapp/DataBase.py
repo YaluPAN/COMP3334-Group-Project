@@ -348,17 +348,6 @@ def test_encryption():
 if __name__ == "__main__":
     # insert_test()
     db = Database_operation()
-    # print(db.get_account_shared('2004478d')[0][0])
-    # print(db.get_price_by_book("C++--from entre to tomb"))
-    # print(db.get_account_book('2004478d'))
-    # print(db.get_account_book('2004478d')[0][0])
-    # print(db.get_account_book('2004478d')[0])
-    # print("-----")
-    # list1 = []
-    # for i in db.get_account_book('2004478d'):
-    #     list1.append(i[0])
-    # print(list1)
-    # list2 = []
-    # for i in db.get_account_shared('2004478d'):
-    #     list2.append(i[0])
-    # print(list2)
+    title="First Glance on Ding-Zhen"
+    target_user=db.get_book_seller(title)[0][0]
+    print(db.get_account_info(target_user)[0][0][2])
