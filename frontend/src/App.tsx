@@ -11,7 +11,7 @@ function App() {
   return (
     <Div100vh>
       <div className="flex h-full flex-col">
-        <Navbar brand="iBookStore" />
+        <Navbar setIsInfoModalOpen={() => true} />
         <Routes> </Routes>
       </div>
     </Div100vh>
