@@ -1,4 +1,5 @@
-function Navbar(props) {
+type Props = { setIsInfoModalOpen: (value: boolean) => void }
+export const Navbar = ({ setIsInfoModalOpen }: Props) => {
   // const { isLoggedIn, logout, username } = useContext(AuthContext)
 
   // const logoutHandler = () => {
@@ -12,7 +13,7 @@ function Navbar(props) {
 
   // const userLink = <Link to="/cart">Hello, {username}!</Link>
 
-  return <div></div>
+  return <div className="navbar"></div>
 }
 
 export default Navbar
