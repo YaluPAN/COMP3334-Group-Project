@@ -2,6 +2,7 @@ import './index.css'
 
 import React from 'react'
 import ReactDOM from 'react-dom'
+import { BrowserRouter } from 'react-router-dom'
 
 import App from './App'
 import { AlertProvider } from './context/AlertContext'
@@ -10,7 +11,9 @@ import reportWebVitals from './reportWebVitals'
 ReactDOM.render(
   <React.StrictMode>
     <AlertProvider>
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </AlertProvider>
   </React.StrictMode>,
   document.getElementById('root')

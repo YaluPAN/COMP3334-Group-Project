@@ -1,5 +1,4 @@
-import './Home.css'
-
+// import './Home.css'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -9,6 +8,11 @@ const INITIAL_STATE = [
   { id: 3, name: 'Bobby', age: 16, hobby: 'swimming' },
   { id: 4, name: 'Lauren', age: 25, hobby: 'running' },
 ]
+
+const user_name = '1q1'
+const token_number = '1q1'
+const purchased_books = ['lsdkfaj', 'asfdfd']
+const contributed_books = ['sadf ']
 
 const capitalize = (word: string) => {
   return (word[0].toUpperCase() + word.slice(1)).replaceAll('_', ' ')
@@ -23,8 +27,18 @@ export const Home = () => {
     </Link>
   )
 
+  const handleBuyClick = () => {
+    alert('nothing')
+  }
+
+  const handleBookShow = () => {
+    return purchased_books.map((book_name) => {
+      return <li>{book_name}</li>
+    })
+  }
+
   const renderUsers = () => {
-    return INITIAL_STATE.map(({ id, name, age, hobby }) => {
+    return users.map(({ id, name, age, hobby }) => {
       return (
         <tr key={id}>
           <td>{id}</td>
@@ -32,7 +46,7 @@ export const Home = () => {
           <td>{age}</td>
           <td>{hobby}</td>
           <td>
-            <button>Buy</button>
+            <button onClick={handleBuyClick}>Buy</button>
           </td>
         </tr>
       )
@@ -59,7 +73,7 @@ export const Home = () => {
   }
 
   return (
-    <div className="home">
+    <div className="short:pb-2 short:pt-2 mx-auto flex w-full grow flex-col px-1 pb-8 pt-2 sm:px-6 md:max-w-7xl lg:px-8">
       <h1>Textbook Exchange System</h1>
 
       {loginLink}
@@ -70,10 +84,10 @@ export const Home = () => {
       </div>
       <div className="account-info">
         <h2>Account Information</h2>
-        <p>Account ID: </p>
+        <p>Account ID: {user_name}</p>
         <p>Token Number: </p>
         <p>List of Purchased Books:</p>
-        <ul></ul>
+        <ul>{handleBookShow()}</ul>
         <p>List of Contributed Books:</p>
         <ul></ul>
 
