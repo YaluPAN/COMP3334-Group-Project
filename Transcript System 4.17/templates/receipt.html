@@ -32,8 +32,8 @@
         display: block;
         margin: 20px auto;
         padding: 10px 20px;
-        width: 10%; /* 将按钮的宽度设置为50% */
-        background-color: #4caf50; /* 将背景色更改为红色 */
+        width: 10%;
+        background-color: #4caf50;
         color: white;
         border: none;
         border-radius: 5px;
@@ -46,17 +46,34 @@
         background-color: #3e8e41;
       }
     </style>
+    <script>
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+
+      const bookTitle = getQueryParam("book_title");
+      const tokenPrice = getQueryParam("token_price");
+      const fileHash = getQueryParam("book_hash");
+
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("bookTitle").innerText = "{{ book_title }}";
+        document.getElementById("tokenPrice").innerText = "{{ token_price }}";
+        document.getElementById("fileHash").innerText = "{{ book_hash }}";
+      });
+    </script>
   </head>
   <body>
     <h1>Congratulations! Your submission is successful!</h1>
-    <button class="back" onclick="location.href=`contribute.html`">Back</button>
-    <!-- <a href="/home" class="back-btn">Back</a> -->
+    <button class="back" onclick="location.href=`{{ url_for('home') }}`">
+      Back
+    </button>
     <div class="receipt">
       <h2>Receipt</h2>
       <ul>
-        <li>Book Title: {{ book_title }}</li>
-        <li>Token Price: {{ token_price }}</li>
-        <li>Book Hash: {{ book_hash }}</li>
+        <li>Book Title: <span id="bookTitle"></span></li>
+        <li>Token Price: <span id="tokenPrice"></span></li>
+        <li>Book Hash: <span id="fileHash"></span></li>
       </ul>
     </div>
   </body>

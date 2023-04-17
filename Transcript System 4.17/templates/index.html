@@ -81,36 +81,36 @@
       }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-  <script>
-    // 加密函数
-    function encrypt(text, key) {
-      // 将密钥转换为 WordArray 对象
-      var key = CryptoJS.enc.Utf8.parse(key);
-      // 使用 AES 算法和 CBC 模式进行加密
-      var ciphertext = CryptoJS.AES.encrypt(text, key, {
+    <script>
+      // 加密函数
+      function encrypt(text, key) {
+        // 将密钥转换为 WordArray 对象
+        var key = CryptoJS.enc.Utf8.parse(key);
+        // 使用 AES 算法和 CBC 模式进行加密
+        var ciphertext = CryptoJS.AES.encrypt(text, key, {
           mode: CryptoJS.mode.CBC,
-          padding: CryptoJS.pad.Pkcs7
-      });
-      // 返回加密后的密文
-      return ciphertext.toString();
-    }
+          padding: CryptoJS.pad.Pkcs7,
+        });
+        // 返回加密后的密文
+        return ciphertext.toString();
+      }
 
-    // 解密函数
-    function decrypt(ciphertext, key) {
-      // 将密钥转换为 WordArray 对象
-      var key = CryptoJS.enc.Utf8.parse(key);
-      // 使用 AES 算法和 CBC 模式进行解密
-      var plaintext = CryptoJS.AES.decrypt(ciphertext, key, {
+      // 解密函数
+      function decrypt(ciphertext, key) {
+        // 将密钥转换为 WordArray 对象
+        var key = CryptoJS.enc.Utf8.parse(key);
+        // 使用 AES 算法和 CBC 模式进行解密
+        var plaintext = CryptoJS.AES.decrypt(ciphertext, key, {
           mode: CryptoJS.mode.CBC,
-          padding: CryptoJS.pad.Pkcs7
-      });
-      // 返回解密后的明文
-      return plaintext.toString(CryptoJS.enc.Utf8);
-    }
-  </script>
-</head>
-<body>
-  <!-- <h1>加密和解密示例</h1>
+          padding: CryptoJS.pad.Pkcs7,
+        });
+        // 返回解密后的明文
+        return plaintext.toString(CryptoJS.enc.Utf8);
+      }
+    </script>
+  </head>
+  <body>
+    <!-- <h1>加密和解密示例</h1>
   <p>明文：<input type="text" id="plaintext"></p>
   <p>密钥：<input type="text" id="key"></p>
   <button onclick="encryptAndDecrypt()">加密和解密</button>
@@ -126,9 +126,9 @@
       document.getElementById('decryptedtext').innerText = decryptedtext;
     }
   </script> -->
-  </head>
+    <!-- </head> -->
 
-  <body>
+    <!-- <body> -->
     <div class="container">
       <h1 class="title">Textbook Exchange System</h1>
       <form class="form" method="POST" action="/login">

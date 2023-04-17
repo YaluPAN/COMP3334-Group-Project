@@ -127,7 +127,7 @@ def signup():
         res_pw = db.sign_up_insert(username, password)
         print(res_pw)
         # db.session.commit()
-        flash("Account created successfully. You can now log in>>>.")
+        flash("Account created successfully. Click Back to log in.")
         # return render_template("signup.html")
         return redirect(url_for("signup"))
 
@@ -154,6 +154,7 @@ def signup():
 @app.route("/home")  # 渲染home.html
 def home():
     user_name = session.get("username")
+    print(db.get_account_info(user_name), "#------------------------------")
     token_number = db.get_account_info(user_name)[0][0][2]
     session["token_number"] = token_number
     owned_book = []
@@ -220,6 +221,14 @@ def home():
 def buy():
     user_name = session.get("username")
     title = request.form.get("title")
+
+    # cid testing-----------------------------
+    print(title, user_name, "#---be remind for testing...")
+    cid = bc_hash_decryption(title)
+    file_returned = download(cid)
+    # print(cid, "<------------cid is here")
+    # cid testing ---------------------------------
+
     price = float(request.form.get("price"))
     token_number = session.get("token_number")
     if token_number is None:
@@ -240,7 +249,8 @@ def buy():
     db.user_property_insert({"account": user_name, "book": title, "buy": 1})
 
     session["token_number"] = token_number
-    return redirect(url_for("home"))
+    redirect(url_for("home"))
+    return file_returned
 
 
 @app.route("/logout")  # 在home.html中，点击“Logout”按钮时，会调用logout()函数，返回login.html
@@ -271,10 +281,10 @@ def contribute():
 def submit():
     book_title = request.form["bookTitle"]
     token_price = request.form["tokenPrice"]
+
     file = request.files["fileInput"]
     filename = secure_filename(file.filename)
-    # file.save('uploads/' + filename)  # 将文件保存到uploads文件夹中
-    # TODO: 将book_title、token_price和文件路径保存到数据库中
+
     # 将文件保存到临时文件夹
     with NamedTemporaryFile(delete=False) as temp_file:
         file.save(temp_file.name)
@@ -282,7 +292,6 @@ def submit():
 
     # 保存文件到IPFS并获取CID
     book_hash = save_to_ipfs(temp_file_path)
-
     return redirect(
         url_for(
             "receipt",
@@ -297,14 +306,64 @@ def submit():
 def receipt():
     book_title = request.args.get("book_title")
     token_price = request.args.get("token_price")
-    book_hash = request.args.get("fileHash")
-
+    book_hash = request.args.get("book_hash")
+    # print(book_title, token_price, book_hash,'-----------------')
+    # db insert book first and put it on sell shop
+    orders = {
+        "bookname": book_title,
+        "bc_hash": book_hash,
+        "account": session.get("username"),
+    }
+    db.books_insert(orders)
+    orders_on_sell = {
+        "account": session.get("username"),
+        "shared_book": book_title,
+        "price": token_price,
+    }
+    db.book_on_sell_insert(orders_on_sell)
+    # 111
     return render_template(
         "receipt.html",
         book_title=book_title,
         token_price=token_price,
         book_hash=book_hash,
     )
+
+
+def download(cid):
+    print(cid, "<-----from download-------cid is here")
+    if not cid:
+        return jsonify({"error": "Missing CID parameter"}), 400
+
+    ipfs_gateway_url = "https://ipfs.io/ipfs/"
+    file_url = ipfs_gateway_url + cid
+
+    response = requests.get(file_url, stream=True)
+
+    if response.status_code == 200:
+        """
+        content_type = response.headers.get('Content-Type')
+        if content_type != 'application/pdf':
+            return jsonify({"error": "The file downloaded is not a PDF"}), 400
+        """
+        file_data = io.BytesIO()
+        for chunk in response.iter_content(chunk_size=8192):
+            file_data.write(chunk)
+
+        file_data.seek(0)
+
+        # You can use any filename or derive it from the content if available
+        # Make sure to sanitize the filename
+        file_name = "downloaded_file"
+
+        return send_file(
+            file_data,
+            as_attachment=True,
+            download_name=file_name,
+            mimetype="application/pdf",
+        )
+    else:
+        return jsonify({"error": "Error downloading file from IPFS"}), 500
 
 
 if __name__ == "__main__":

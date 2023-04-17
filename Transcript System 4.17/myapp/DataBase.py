@@ -417,7 +417,7 @@ def test_encryption():
 
 if __name__ == "__main__":
     # insert_test()
-    db=Database_operation()
+    db = Database_operation()
     # data={"bookname": "ysk is dumb", "account": "qsasf", "bc_hash": "QmZMJJpqhNHJcpdUSBEGASsUmAZdCfabMnBFebQZLVHtws"}
     # db.books_insert(data=data)
-    print(test_encryption()=="QmZMJJpqhNHJcpdUSBEGASsUmAZdCfabMnBFebQZLVHtws")
+    print(test_encryption() == "QmZMJJpqhNHJcpdUSBEGASsUmAZdCfabMnBFebQZLVHtws")
