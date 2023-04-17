@@ -1,4 +1,5 @@
 // import './Home.css'
+import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -18,6 +19,8 @@ const capitalize = (word: string) => {
   return (word[0].toUpperCase() + word.slice(1)).replaceAll('_', ' ')
 }
 
+const API_URL = 'http://localhost:8080/api/auth/'
+
 export const Home = () => {
   const [users, setUsers] = useState(INITIAL_STATE)
 
@@ -28,7 +31,18 @@ export const Home = () => {
   )
 
   const handleBuyClick = () => {
-    alert('nothing')
+    axios
+      .post(API_URL + 'signin', {
+        user_name,
+        token_number,
+      })
+      .then((response) => {
+        if (response.data.accessToken) {
+          localStorage.setItem('user', JSON.stringify(response.data))
+        }
+
+        return response.data
+      })
   }
 
   const handleBookShow = () => {
