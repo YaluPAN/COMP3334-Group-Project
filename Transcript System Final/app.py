@@ -120,7 +120,7 @@ def signup():
     if not username or not password:
         return render_template("signup.html")
 
-    verify_user = db.get_account_info(username)[0]
+    verify_user = db.get_account_info(username)[0][0][0]
     if verify_user and username == verify_user:
         flash("Username already exists. Please choose a different username.")
         return render_template("signup.html")
