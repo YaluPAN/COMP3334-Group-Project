@@ -332,7 +332,7 @@ def receipt():
 
 
 @app.route("/download")
-def download(cid):
+def download():
     cid = session.get("cid")
     print(cid, "<-----from download-------cid is here")
     if not cid:
