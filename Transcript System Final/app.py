@@ -226,8 +226,8 @@ def buy():
 
     # cid testing-----------------------------
     print(title, user_name, "#---be remind for testing...")
-    cid = bc_hash_decryption(title)
-    file_returned = download(cid)
+    session["cid"] = bc_hash_decryption(title)
+    # file_returned = download(cid)
     # print(cid, "<------------cid is here")
     # cid testing ---------------------------------
 
@@ -251,8 +251,7 @@ def buy():
     db.user_property_insert({"account": user_name, "book": title, "buy": 1})
 
     session["token_number"] = token_number
-    redirect(url_for("home"))
-    return file_returned
+    return redirect(url_for("home"))
 
 
 @app.route("/logout")  # 在home.html中，点击“Logout”按钮时，会调用logout()函数，返回login.html
@@ -332,7 +331,9 @@ def receipt():
     )
 
 
+@app.route("/download")
 def download(cid):
+    cid = session.get("cid")
     print(cid, "<-----from download-------cid is here")
     if not cid:
         return jsonify({"error": "Missing CID parameter"}), 400
