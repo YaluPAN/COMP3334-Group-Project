@@ -15,9 +15,15 @@ from flask import send_file
 import io
 
 app = Flask(__name__)
+# "c60ce6a2dab928d4607837992c69a0e9e45b349b232393f0ee222ab8fdd5a512"
+
+db = DataBase.Database_operation()
+secret_key = {
+    "AES_key": b"o5DJJRS8VqO7LdQlDULngL5E49AqCPbDxq5F6aFWgGmv20mU5MDBKXy6pKgkN5YiQC+NRz0anfoxUcywMnNLK03QZnZ3I60ABZ5g0m0kDlhZYTgt/hTM19th6rTheMTm",
+    "salt": b">!?5u\xe7D\x02\xaf\xfa3\x01\xee]\x84`",
+}
 
 
-#
 @app.errorhandler(500)
 def internal_server_error(e):
     return jsonify(error=str(e)), 500
@@ -26,9 +32,7 @@ def internal_server_error(e):
 #
 def save_to_ipfs(file_path):
     pinata_api_key = "c5948b18b8a7629fe5da"
-    pinata_secret_api_key = (
-        "c60ce6a2dab928d4607837992c69a0e9e45b349b232393f0ee222ab8fdd5a512"
-    )
+    pinata_secret_api_key = db.AES_decryption(secret_key["AES_key"], secret_key["salt"])
     # Update the following path with the correct path to your CA certificates file
     cert_path = "root_certificates.pem"
     url = "https://api.pinata.cloud/pinning/pinFileToIPFS"
@@ -68,8 +72,6 @@ def upload_to_pinata():
     return {"file_cid": file_cid}
 
 
-db = DataBase.Database_operation()
-
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
 app.config["SECRET_KEY"] = "9e6c1f125a144d6a03a6bc42f926a9e6"
 
@@ -107,7 +109,7 @@ def login():
             session["username"] = username
             return redirect(url_for("home"))
     else:
-        # flash("Incorrect username or password. Please try again.")
+        flash("Incorrect username or password. Please try again.")
         return redirect(url_for("login"))
 
 
@@ -367,4 +369,6 @@ def download(cid):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # app.run(debug=True)
+    print("only for test: ")
+    print("now here we go: ")

@@ -137,23 +137,28 @@
         background-color: #3e8e41;
       }
     </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-      function buyBook(title, price) {
-        if (confirm("Are you sure you want to buy " + title + "?")) {
-          $.ajax({
-            type: "POST",
-            url: "/buy",
-            data: { title: title, price: price },
-            success: function (response) {
-              alert("Book purchased successfully.");
-              location.reload();
-            },
-            error: function () {
-              alert("Something went wrong.");
-            },
-          });
-        }
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js">
+      // <!--		function buyBook(title,token_number) {-->
+      // <!--			if (confirm("Are you sure you want to buy " + title + "?")) {-->
+      // <!--				// TODO: Handle buy logic-->
+      // <!--			}-->
+      // <!--		}-->
+
+      		function buyBook(title, price) {
+          if (confirm("Are you sure you want to buy " + title + "?")) {
+              $.ajax({
+                  type: "POST",
+                  url: "/buy",
+                  data: { title: title, price: price },
+                  success: function(response) {
+                      alert("Book purchased successfully.");
+                      location.reload();
+                  },
+                  error: function() {
+                      alert("Something went wrong.");
+                  }
+              })
+            }
       }
     </script>
   </head>
@@ -204,20 +209,20 @@
         <tbody>
           {% for book in books %}
           <tr>
-            <!-- <form method="POST" action="/buy" id="book-{{ loop.index }}"> -->
-            <input type="hidden" name="title" value="{{ book['title'] }}" />
-            <input type="hidden" name="price" value="{{ book['price'] }}" />
-            <td>{{ book['title'] }}</td>
-            <td>{{ book['contributor'] }}</td>
-            <td>{{ book['price'] }}</td>
-            <td>
-              <button
-                onclick="buyBook(`{{ book['title'] }}`,`{{ book['price'] }}`)"
-              >
-                Buy
-              </button>
-            </td>
-            <!-- </form> -->
+            <form method="POST" action="/buy" id="book-{{ loop.index }}">
+              <input type="hidden" name="title" value="{{ book['title'] }}" />
+              <input type="hidden" name="price" value="{{ book['price'] }}" />
+              <td>{{ book['title'] }}</td>
+              <td>{{ book['contributor'] }}</td>
+              <td>{{ book['price'] }}</td>
+              <td>
+                <button
+                  onclick="buyBook(`{{ book['title'] }},{{ book['price'] }}`)"
+                >
+                  Buy
+                </button>
+              </td>
+            </form>
           </tr>
           {% endfor %}
         </tbody>
