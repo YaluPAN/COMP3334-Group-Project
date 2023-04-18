@@ -107,7 +107,7 @@ def login():
             session["username"] = username
             return redirect(url_for("home"))
     else:
-        flash("Incorrect username or password. Please try again.")
+        # flash("Incorrect username or password. Please try again.")
         return redirect(url_for("login"))
 
 
