@@ -3,6 +3,13 @@
   <head>
     <title>Textbook Exchange System</title>
     <style>
+      /* reset default browser styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
       body {
         font-family: Arial, sans-serif;
         text-align: center;
@@ -19,8 +26,7 @@
 
       .title {
         font-size: 2em;
-        margin-top: 50px;
-        margin-bottom: 30px;
+        margin: 50px 0 30px;
       }
 
       .form {
@@ -28,7 +34,7 @@
         padding: 20px;
         background-color: #fff;
         border-radius: 5px;
-        box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
       }
 
       .form-group {
@@ -48,10 +54,11 @@
         padding: 10px;
         border-radius: 5px;
         border: none;
-        box-shadow: inset 0px 0px 2px 0px rgba(0, 0, 0, 0.2);
+        box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.2);
       }
 
-      .form-group input[type="submit"] {
+      .form-group input[type="submit"],
+      .signup {
         width: 100%;
         padding: 10px;
         border-radius: 5px;
@@ -63,12 +70,12 @@
         margin-bottom: 10px;
       }
 
-      .form-group input[type="submit"]:hover {
+      .form-group input[type="submit"]:hover,
+      .signup:hover {
         background-color: #3e8e41;
       }
 
       .form-group .alt-link {
-        display: block;
         margin-top: 10px;
         text-align: center;
         font-style: italic;
@@ -110,23 +117,6 @@
     </script>
   </head>
   <body>
-    <!-- <h1>加密和解密示例</h1>
-  <p>明文：<input type="text" id="plaintext"></p>
-  <p>密钥：<input type="text" id="key"></p>
-  <button onclick="encryptAndDecrypt()">加密和解密</button>
-  <p>密文：<span id="ciphertext"></span></p>
-  <p>解密后的明文：<span id="decryptedtext"></span></p>
-  <script>
-    function encryptAndDecrypt() {
-      var plaintext = document.getElementById('plaintext').value;
-      var key = document.getElementById('key').value;
-      var ciphertext = encrypt(plaintext, key);
-      var decryptedtext = decrypt(ciphertext, key);
-      document.getElementById('ciphertext').innerText = ciphertext;
-      document.getElementById('decryptedtext').innerText = decryptedtext;
-    }
-  </script> -->
-
     <div class="container">
       <h1 class="title">Textbook Exchange System</h1>
       <form class="form" method="POST" action="/login">
@@ -141,35 +131,17 @@
         <div class="form-group">
           <input type="submit" value="Login" />
         </div>
+        <button
+          class="signup"
+          onclick="location.href=`{{ url_for('signup') }}`"
+        >
+          Signup
+        </button>
+
+        <div class="form-group alt-link">
+          <a href="#">Forgot password?</a>
+        </div>
       </form>
-
-      <button class="signup" onclick="location.href=`{{ url_for('signup') }}`">
-        Signup
-      </button>
-
-      <div class="form-group alt-link">
-        <a href="#">Forgot password?</a>
-      </div>
-      <!--      <form class="form" method="POST" action="/login">-->
-      <!--&lt;!&ndash;      <form class="form">&ndash;&gt;-->
-      <!--        <div class="form-group">-->
-      <!--          <label for="username">Account:</label>-->
-      <!--          <input type="text" id="username" name="username" required>-->
-      <!--        </div>-->
-      <!--        <div class="form-group">-->
-      <!--          <label for="password">Password:</label>-->
-      <!--          <input type="password" id="password" name="password" required>-->
-      <!--        </div>-->
-      <!--        <div class="form-group">-->
-      <!--          <input type="submit" value="Login">-->
-      <!--        </div>-->
-      <!--        <div class="form-group">-->
-      <!--          <input type="submit" value="Sign Up">-->
-      <!--        </div>-->
-      <!--        <div class="form-group alt-link">-->
-      <!--          <a href="#">Forgot password?</a>-->
-      <!--        </div>-->
-      <!--      </form>-->
     </div>
   </body>
 </html>

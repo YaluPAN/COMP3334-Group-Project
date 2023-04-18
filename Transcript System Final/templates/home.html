@@ -3,6 +3,12 @@
   <head>
     <title>Textbook Exchange System</title>
     <style>
+      /* Apply a CSS reset */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
       body {
         font-family: Arial, Helvetica, sans-serif;
         margin: 0;
@@ -168,31 +174,6 @@
 
     <div class="book-list">
       <h2>Available Books</h2>
-
-      <!--        <table>-->
-      <!--            <thead>-->
-      <!--                <tr>-->
-      <!--                    <th>Book Title</th>-->
-      <!--                    <th>Contributor</th>-->
-      <!--                    <th>Price</th>-->
-      <!--                    <th></th>-->
-      <!--                </tr>-->
-      <!--            </thead>-->
-      <!--            <tbody>-->
-      <!--                {% for book in books %}-->
-      <!--                    <tr>-->
-      <!--                         <form method="POST" action="/buy">-->
-      <!--                        <td>{{ book['title'] }}</td>-->
-      <!--                        <td>{{ book['contributor'] }}</td>-->
-      <!--                        <td>{{ book['price'] }}</td>-->
-      <!--                        <td><button onclick="buyBook(`{{ book['title'] }},{{ book['price'] }}`)">Buy</button></td>-->
-      <!--                                         </form>-->
-
-      <!--                    </tr>-->
-      <!--                {% endfor %}-->
-      <!--            </tbody>-->
-      <!--        </table>-->
-
       <table>
         <thead>
           <tr>
