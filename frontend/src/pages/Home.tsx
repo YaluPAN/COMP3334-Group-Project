@@ -19,7 +19,7 @@ const capitalize = (word: string) => {
   return (word[0].toUpperCase() + word.slice(1)).replaceAll('_', ' ')
 }
 
-const API_URL = 'http://localhost:8080/api/auth/'
+const API_URL = 'http://127.0.0.1:5000/'
 
 export const Home = () => {
   const [users, setUsers] = useState(INITIAL_STATE)
@@ -31,17 +31,20 @@ export const Home = () => {
   )
 
   const handleBuyClick = () => {
-    axios
-      .post(API_URL + 'signin', {
-        user_name,
-        token_number,
-      })
-      .then((response) => {
-        if (response.data.accessToken) {
-          localStorage.setItem('user', JSON.stringify(response.data))
-        }
+    const formData = new FormData()
+    formData.append('filename', '123')
 
+    axios
+      .post(API_URL + 'download', formData, { headers: formData.getHeaders() })
+      .then(async (response) => {
+        // if (response.data.accessToken) {
+        //   localStorage.setItem('user', JSON.stringify(response.data))
+        // }
+        console.log(response)
         return response.data
+      })
+      .catch((error) => {
+        console.log(error)
       })
   }
 
