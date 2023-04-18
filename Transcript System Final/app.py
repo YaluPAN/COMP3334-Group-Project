@@ -109,7 +109,7 @@ def login():
             session["username"] = username
             return redirect(url_for("home"))
     else:
-        flash("Incorrect username or password. Please try again.")
+        # flash("Incorrect username or password. Please try again.")
         return redirect(url_for("login"))
 
 
@@ -369,6 +369,6 @@ def download(cid):
 
 
 if __name__ == "__main__":
-    # app.run(debug=True)
-    print("only for test: ")
-    print("now here we go: ")
+    app.run(debug=True)
+    # print("only for test: ")
+    # print("now here we go: ")
