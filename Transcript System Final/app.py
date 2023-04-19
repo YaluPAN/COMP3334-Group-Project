@@ -109,9 +109,11 @@ def login():
 
     username = username.lower()
     verify_user = db.get_account_info(username)
+    if verify_user:
+        verify_user = verify_user[0]
     if (
         verify_user
-        and username == verify_user[0][0][0]
+        and username == verify_user[0][0]
         and password == pw_decryption(username)
     ):
         session["username"] = username
@@ -138,7 +140,9 @@ def signup():
         return render_template("signup.html")
 
     verify_user = db.get_account_info(username)
-    if verify_user and username == verify_user[0][0][0]:
+    if verify_user:
+        verify_user = verify_user[0]
+    if verify_user and username == verify_user[0][0]:
         flash("Account already exists. Please choose a different username.")
         return render_template("signup.html")
     else:
@@ -244,7 +248,6 @@ def buy():
     # cid testing-----------------------------
     print(title, user_name, "#---be remind for testing...")
     session["cid"] = bc_hash_decryption(title)
-    session["buy_book_name"] = title
     # file_returned = download(cid)
     # print(cid, "<------------cid is here")
     # cid testing ---------------------------------
@@ -351,9 +354,6 @@ def receipt():
 
 @app.route("/download")
 def download():
-    book_name = session.get("buy_book_name")
-    # print(book_name, "----------from download--------------book name")
-    # cid = bc_hash_decryption(book_name)
     cid = session.get("cid")
     print(cid, "<-----from download-------cid is here")
     if not cid:
@@ -378,7 +378,7 @@ def download():
 
         # You can use any filename or derive it from the content if available
         # Make sure to sanitize the filename
-        file_name = book_name + ".pdf"
+        file_name = "downloaded_file"
 
         return send_file(
             file_data,
