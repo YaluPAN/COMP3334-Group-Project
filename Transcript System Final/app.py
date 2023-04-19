@@ -13,6 +13,7 @@ from tempfile import NamedTemporaryFile
 from flask import jsonify
 from flask import send_file
 import io
+import re
 
 app = Flask(__name__)
 # "c60ce6a2dab928d4607837992c69a0e9e45b349b232393f0ee222ab8fdd5a512"
@@ -103,13 +104,20 @@ def bc_hash_decryption(bkname: str):
 def login():
     username = request.form.get("username")
     password = request.form.get("password")
+    if not username or not password:
+        return render_template("index.html")
+
+    username = username.lower()
     verify_user = db.get_account_info(username)[0]
-    if verify_user:
-        if username == verify_user[0][0] and password == pw_decryption(username):
-            session["username"] = username
-            return redirect(url_for("home"))
+    if (
+        verify_user
+        and username == verify_user[0][0]
+        and password == pw_decryption(username)
+    ):
+        session["username"] = username
+        return redirect(url_for("home"))
     else:
-        # flash("Incorrect username or password. Please try again.")
+        flash("Incorrect username or password. Please try again.")
         return redirect(url_for("login"))
 
 
@@ -120,9 +128,18 @@ def signup():
     if not username or not password:
         return render_template("signup.html")
 
-    verify_user = db.get_account_info(username)[0][0][0]
-    if verify_user and username == verify_user:
-        flash("Username already exists. Please choose a different username.")
+    username = username.lower()
+    if not re.match(r"\d{8}[a-z]$", username):
+        flash("This is not a valid account. Please enter the student ID.")
+        return render_template("signup.html")
+
+    if not 5 < len(password) < 41:
+        flash("The password must be between 6 and 40 characters.")
+        return render_template("signup.html")
+
+    verify_user = db.get_account_info(username)[0]
+    if verify_user and username == verify_user[0][0]:
+        flash("Account already exists. Please choose a different username.")
         return render_template("signup.html")
     else:
         print(username, password, "#--------------------------------------------")
