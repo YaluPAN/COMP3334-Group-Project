@@ -24,7 +24,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        height: 50vh;
       }
 
       .title {
@@ -62,7 +62,7 @@
       }
 
       .form-group input[type="submit"],
-      .signup {
+      .back {
         width: 100%;
         padding: 10px;
         border-radius: 5px;
@@ -75,7 +75,7 @@
       }
 
       .form-group input[type="submit"]:hover,
-      .signup:hover {
+      .back:hover {
         background-color: #3e8e41;
       }
 
@@ -153,14 +153,9 @@
       }
     </script>
 
+    <h1 class="title">Textbook Exchange System</h1>
+
     <div class="container">
-      <h1 class="title">Textbook Exchange System</h1>
-      <button
-        class="back"
-        onclick="location.href=`{{ url_for('back_index') }}`"
-      >
-        Back
-      </button>
       <!--    <button class="logout" onclick="location.href=`{{ url_for('login') }}`">Logout</button>-->
 
       {% with messages = get_flashed_messages() %} {% if messages %}
@@ -183,6 +178,12 @@
         <div class="form-group">
           <input type="submit" value="Signup" />
         </div>
+        <button
+          class="back"
+          onclick="location.href=`{{ url_for('back_index') }}`"
+        >
+          Back
+        </button>
       </form>
     </div>
   </body>

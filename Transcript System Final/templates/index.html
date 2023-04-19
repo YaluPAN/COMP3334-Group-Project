@@ -21,7 +21,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        height: 50vh;
       }
 
       .title {
@@ -118,9 +118,9 @@
     </script>
   </head>
   <body>
-    <div class="container">
-      <h1 class="title">Textbook Exchange System</h1>
+    <h1 class="title">Textbook Exchange System</h1>
 
+    <div class="container">
       {% with messages = get_flashed_messages() %} {% if messages %}
       <div class="flashes">
         {% for message in messages %}
