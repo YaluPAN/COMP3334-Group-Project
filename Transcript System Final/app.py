@@ -248,6 +248,7 @@ def buy():
     # cid testing-----------------------------
     print(title, user_name, "#---be remind for testing...")
     session["cid"] = bc_hash_decryption(title)
+    session["buy_book_name"] = title
     # file_returned = download(cid)
     # print(cid, "<------------cid is here")
     # cid testing ---------------------------------
@@ -354,6 +355,7 @@ def receipt():
 
 @app.route("/download")
 def download():
+    book_name = session.get("buy_book_name")
     cid = session.get("cid")
     print(cid, "<-----from download-------cid is here")
     if not cid:
@@ -378,7 +380,7 @@ def download():
 
         # You can use any filename or derive it from the content if available
         # Make sure to sanitize the filename
-        file_name = "downloaded_file"
+        file_name = book_name + ".pdf"
 
         return send_file(
             file_data,
